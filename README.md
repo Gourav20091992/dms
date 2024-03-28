@@ -1,3 +1,5 @@
 # MiniAppMicroServices
 
-Mini app Micro Services Backend application
+Java Microservices with Spring Boot
+
+# Prerequisites: Java 17 and an internet connection.
