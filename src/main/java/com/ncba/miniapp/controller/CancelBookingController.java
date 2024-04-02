@@ -1,0 +1,25 @@
+package com.ncba.miniapp.controller;
+
+import com.ncba.miniapp.dto.request.CancelBookingRequest;
+import com.ncba.miniapp.service.CancelBookingService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/v1/duqa")
+@Slf4j
+public class CancelBookingController {
+
+    @Autowired
+    CancelBookingService cancelBookingService;
+
+    @PostMapping("/cancelBooking")
+    public ResponseEntity<String> cancelBooking(@RequestBody CancelBookingRequest cancelBookingRequest, @RequestHeader("Travelduqa-Version") String version,
+                                                @RequestHeader("Authorization") String token) {
+        log.info("Inside cancelBooking()...cancelBookingRequest: {}", cancelBookingRequest);
+        return cancelBookingService.cancelBooking(cancelBookingRequest, version, token);
+    }
+
+}
