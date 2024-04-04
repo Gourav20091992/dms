@@ -1,7 +1,7 @@
 package com.ncba.miniapp.service;
 
+import com.ncba.miniapp.configuration.HeadersConfig;
 import com.ncba.miniapp.dto.request.*;
-import com.ncba.miniapp.util.HeadersUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,9 +14,8 @@ import org.springframework.web.client.RestTemplate;
 @Slf4j
 @Service
 public class OrderService {
-
-    @Autowired
     private final RestTemplate restTemplate;
+    private final HeadersConfig headersConfig;
     @Value("${paymentStatusCallbackUrl}")
     private String paymentStatusCallbackUrl;
     @Value("${placeOrderUrl}")
@@ -29,13 +28,14 @@ public class OrderService {
     private String reverseOrderUrl;
 
     @Autowired
-    public OrderService(RestTemplate restTemplate) {
+    public OrderService(RestTemplate restTemplate, HeadersConfig headersConfig) {
         this.restTemplate = restTemplate;
+        this.headersConfig = headersConfig;
     }
 
-    public ResponseEntity<String> paymentStatusCallback(PaymentInfo paymentInfo, String version, String token) {
+    public ResponseEntity<String> paymentStatusCallback(PaymentInfo paymentInfo) {
         log.info("Inside  paymentStatusCallback()...paymentInfo: {}", paymentInfo);
-        HttpHeaders headers = HeadersUtil.getHttpHeaders(version, token);
+        HttpHeaders headers = headersConfig.getHttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<PaymentInfo> entity = new HttpEntity<>(paymentInfo, headers);
         try {
@@ -55,9 +55,9 @@ public class OrderService {
         }
     }
 
-    public ResponseEntity<String> placeOrder(PreOrderData preOrderData, String version, String token) {
+    public ResponseEntity<String> placeOrder(PreOrderData preOrderData) {
         log.info("Inside  placeOrder()...preOrderData: {}", preOrderData);
-        HttpHeaders headers = HeadersUtil.getHttpHeaders(version, token);
+        HttpHeaders headers = headersConfig.getHttpHeaders();
         HttpEntity<PreOrderData> entity = new HttpEntity<>(preOrderData, headers);
 
         try {
@@ -77,9 +77,9 @@ public class OrderService {
         }
     }
 
-    public ResponseEntity<String> queryOrderStatus(OrderQueryRequest orderQueryRequest, String version, String token) {
+    public ResponseEntity<String> queryOrderStatus(OrderQueryRequest orderQueryRequest) {
         log.info("Inside  queryOrderStatus()...orderQueryRequest: {}", orderQueryRequest);
-        HttpHeaders headers = HeadersUtil.getHttpHeaders(version, token);
+        HttpHeaders headers = headersConfig.getHttpHeaders();
         HttpEntity<OrderQueryRequest> entity = new HttpEntity<>(orderQueryRequest, headers);
 
         try {
@@ -99,9 +99,9 @@ public class OrderService {
         }
     }
 
-    public ResponseEntity<String> queryReverseOrder(ReverseOrderStatus reverseOrderStatus, String version, String token) {
+    public ResponseEntity<String> queryReverseOrder(ReverseOrderStatus reverseOrderStatus) {
         log.info("Inside  queryReverseOrder()...reverseOrderStatus: {}", reverseOrderStatus);
-        HttpHeaders headers = HeadersUtil.getHttpHeaders(version, token);
+        HttpHeaders headers = headersConfig.getHttpHeaders();
         HttpEntity<ReverseOrderStatus> entity = new HttpEntity<>(reverseOrderStatus, headers);
 
         try {
@@ -121,9 +121,9 @@ public class OrderService {
         }
     }
 
-    public ResponseEntity<String> reverseOrder(ReverseOrderRequest reverseOrderRequest, String version, String token) {
+    public ResponseEntity<String> reverseOrder(ReverseOrderRequest reverseOrderRequest) {
         log.info("Inside  reverseOrder()...reverseOrderRequest: {}", reverseOrderRequest);
-        HttpHeaders headers = HeadersUtil.getHttpHeaders(version, token);
+        HttpHeaders headers = headersConfig.getHttpHeaders();
         HttpEntity<ReverseOrderRequest> entity = new HttpEntity<>(reverseOrderRequest, headers);
 
         try {

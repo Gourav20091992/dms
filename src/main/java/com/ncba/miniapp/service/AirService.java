@@ -1,11 +1,11 @@
 package com.ncba.miniapp.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ncba.miniapp.configuration.HeadersConfig;
 import com.ncba.miniapp.dto.request.AirRequestDto;
 import com.ncba.miniapp.mapper.request.AirRequestMapper;
 import com.ncba.miniapp.model.AirRequest;
 import com.ncba.miniapp.repository.AirRepository;
-import com.ncba.miniapp.util.HeadersUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,8 +19,8 @@ import org.springframework.web.client.RestTemplate;
 @Slf4j
 @Service
 public class AirService {
-    @Autowired
     private final RestTemplate restTemplate;
+    private final HeadersConfig headersConfig;
     @Autowired
     AirRepository airRepo;
     @Autowired
@@ -31,12 +31,13 @@ public class AirService {
     private String getAirlinesUrl;
 
     @Autowired
-    public AirService(RestTemplate restTemplate) {
+    public AirService(RestTemplate restTemplate, HeadersConfig headersConfig) {
         this.restTemplate = restTemplate;
+        this.headersConfig = headersConfig;
     }
 
-    public ResponseEntity<String> getLocation(AirRequestDto dto, String version, String token) {
-        HttpHeaders headers = HeadersUtil.getHttpHeaders(version, token);
+    public ResponseEntity<String> getLocation(AirRequestDto dto) {
+        HttpHeaders headers = headersConfig.getHttpHeaders();
         HttpEntity<AirRequestDto> entity = new HttpEntity<>(dto, headers);
         try {
             ResponseEntity<String> response = restTemplate.exchange(getLocationUrl, HttpMethod.POST, entity, String.class);
@@ -92,9 +93,9 @@ public class AirService {
         }
     }
 
-    public ResponseEntity<String> getAirlines(String version, String token) {
+    public ResponseEntity<String> getAirlines() {
         log.info("Inside getAirlines()...");
-        HttpHeaders headers = HeadersUtil.getHttpHeaders(version, token);
+        HttpHeaders headers = headersConfig.getHttpHeaders();
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
         try {
