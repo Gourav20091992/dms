@@ -5,7 +5,10 @@ import com.ncba.miniapp.service.AirService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/airports")
@@ -15,19 +18,14 @@ public class AirController {
     AirService airService;
 
     @PostMapping("/getLocation")
-    public ResponseEntity<String> getLocation(
-            @RequestHeader("Travelduqa-Version") String version,
-            @RequestHeader("Authorization") String token,
-            @RequestBody AirRequestDto airRequestDto) {
+    public ResponseEntity<String> getLocation(@RequestBody AirRequestDto airRequestDto) {
         log.info("Inside getLocation()...airRequestDto: {}", airRequestDto);
-        return airService.getLocation(airRequestDto, version, token);
+        return airService.getLocation(airRequestDto);
     }
 
     @PostMapping("/getAirlines")
-    public ResponseEntity<String> getAirlines(
-            @RequestHeader("Travelduqa-Version") String version,
-            @RequestHeader("Authorization") String token) {
+    public ResponseEntity<String> getAirlines() {
         log.info("Inside getAirlines()...");
-        return airService.getAirlines(version, token);
+        return airService.getAirlines();
     }
 }

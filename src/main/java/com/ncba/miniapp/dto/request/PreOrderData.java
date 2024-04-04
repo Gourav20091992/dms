@@ -28,5 +28,5 @@ public class PreOrderData {
     private String notifyUrl;
     private String chargeCategory;
     private String secretKey;
-
+    private String tillNo;
 }

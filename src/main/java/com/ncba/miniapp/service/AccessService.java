@@ -1,8 +1,8 @@
 package com.ncba.miniapp.service;
 
+import com.ncba.miniapp.configuration.HeadersConfig;
 import com.ncba.miniapp.dto.request.UserInfoRequestDto;
 import com.ncba.miniapp.dto.request.UserSessionRequest;
-import com.ncba.miniapp.util.HeadersUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,16 +16,17 @@ import org.springframework.web.client.RestTemplate;
 @Slf4j
 @Service
 public class AccessService {
-    @Autowired
     private final RestTemplate restTemplate;
+    private final HeadersConfig headersConfig;
     @Value("${userInfoRequestUrl}")
     private String userInfoRequestUrl;
     @Value("${accessTokenUrl}")
     private String accessTokenUrl;
 
     @Autowired
-    public AccessService(RestTemplate restTemplate) {
+    public AccessService(RestTemplate restTemplate, HeadersConfig headersConfig) {
         this.restTemplate = restTemplate;
+        this.headersConfig = headersConfig;
     }
 
     public ResponseEntity<String> getHealthStatus() {
@@ -45,9 +46,9 @@ public class AccessService {
         }
     }
 
-    public ResponseEntity<String> getUserInfo(UserInfoRequestDto userInfoRequestDto, String version, String token) {
+    public ResponseEntity<String> getUserInfo(UserInfoRequestDto userInfoRequestDto) {
         log.info("Inside getUserInfo()...userInfoRequestDto: {} userInfoRequestUrl: {}", userInfoRequestDto, userInfoRequestUrl);
-        HttpHeaders headers = HeadersUtil.getHttpHeaders(version, token);
+        HttpHeaders headers = headersConfig.getHttpHeaders();
         HttpEntity<UserInfoRequestDto> entity = new HttpEntity<>(userInfoRequestDto, headers);
 
         try {
@@ -67,9 +68,9 @@ public class AccessService {
         }
     }
 
-    public ResponseEntity<String> getAccessToken(UserSessionRequest userSessionRequest, String version, String token) {
+    public ResponseEntity<String> getAccessToken(UserSessionRequest userSessionRequest) {
         log.info("Inside getAccessToken()...userSessionRequest: {} accessTokenUrl: {}", userSessionRequest, accessTokenUrl);
-        HttpHeaders headers = HeadersUtil.getHttpHeaders(version, token);
+        HttpHeaders headers = headersConfig.getHttpHeaders();
         HttpEntity<UserSessionRequest> entity = new HttpEntity<>(userSessionRequest, headers);
         try {
             return restTemplate.exchange(accessTokenUrl, HttpMethod.POST, entity, String.class);

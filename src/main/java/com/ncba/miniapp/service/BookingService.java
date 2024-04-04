@@ -1,12 +1,12 @@
 package com.ncba.miniapp.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ncba.miniapp.configuration.HeadersConfig;
 import com.ncba.miniapp.dto.request.BookingRequest;
 import com.ncba.miniapp.model.booking.Booking;
 import com.ncba.miniapp.model.booking.Passenger;
 import com.ncba.miniapp.model.booking.Payments;
 import com.ncba.miniapp.repository.BookingRepository;
-import com.ncba.miniapp.util.HeadersUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,24 +23,23 @@ import java.util.Objects;
 @Slf4j
 @Service
 public class BookingService {
-
-    @Autowired
     private final RestTemplate restTemplate;
+    private final HeadersConfig headersConfig;
     @Autowired
     BookingRepository bookingRepository;
-
     @Value("${createBookingUrl}")
     private String createBookingUrl;
 
     @Autowired
-    public BookingService(RestTemplate restTemplate) {
+    public BookingService(RestTemplate restTemplate, HeadersConfig headersConfig) {
         this.restTemplate = restTemplate;
+        this.headersConfig = headersConfig;
     }
 
     @Transactional
-    public ResponseEntity<String> createBooking(BookingRequest bookingRequest, String version, String token) {
+    public ResponseEntity<String> createBooking(BookingRequest bookingRequest) {
         log.info("Inside createBooking(): {} createBookingUrl: {}", bookingRequest, createBookingUrl);
-        HttpHeaders headers = HeadersUtil.getHttpHeaders(version, token);
+        HttpHeaders headers = headersConfig.getHttpHeaders();
         HttpEntity<BookingRequest> entity = new HttpEntity<>(bookingRequest, headers);
 
         try {

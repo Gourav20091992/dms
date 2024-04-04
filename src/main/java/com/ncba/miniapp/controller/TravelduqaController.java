@@ -18,59 +18,45 @@ public class TravelduqaController {
     TravelduqaService travelduqaService;
 
     @PostMapping("/getBookingChangeStatus")
-    public ResponseEntity<String> getBookingChangeStatus(@RequestBody ChangeStatusRequestDto changeStatusRequestDto, @RequestHeader("Travelduqa-Version") String version,
-                                                         @RequestHeader("Authorization") String token) {
+    public ResponseEntity<String> getBookingChangeStatus(@RequestBody ChangeStatusRequestDto changeStatusRequestDto) {
         log.info("Inside reverseOrder()...changeStatusRequestDto: {}", changeStatusRequestDto);
-        return travelduqaService.getBookingChangeStatus(changeStatusRequestDto, version, token);
+        return travelduqaService.getBookingChangeStatus(changeStatusRequestDto);
     }
 
     @GetMapping("/getWalletStatus")
-    public ResponseEntity<String> getWalletStatus(@RequestHeader("Travelduqa-Version") String version,
-                                                  @RequestHeader("Authorization") String token) {
+    public ResponseEntity<String> getWalletStatus() {
         log.info("Inside reverseOrder()...");
-        return travelduqaService.getWalletStatus(version, token);
+        return travelduqaService.getWalletStatus();
     }
 
     @GetMapping("/getWalletTransactions")
-    public ResponseEntity<String> getWalletTransactions(
-            @RequestHeader("Travelduqa-Version") String version,
-            @RequestHeader("Authorization") String token) {
+    public ResponseEntity<String> getWalletTransactions() {
         log.info("Inside reverseOrder()...");
-        return travelduqaService.getWalletTransactions(version, token);
+        return travelduqaService.getWalletTransactions();
     }
 
     @PostMapping("/updateBookingState")
-    public ResponseEntity<String> updateBookingState(
-            @RequestHeader("Travelduqa-Version") String version,
-            @RequestHeader("Authorization") String token,
-            @RequestBody BookingState bookingState) {
+    public ResponseEntity<String> updateBookingState(@RequestBody BookingState bookingState) {
         log.info("Inside reverseOrder()...bookingState: {}", bookingState);
-        return travelduqaService.updateBookingState(bookingState, version, token);
+        return travelduqaService.updateBookingState(bookingState);
     }
 
     @PostMapping("/getBooking")
-    public ResponseEntity<String> getBooking(
-            @RequestHeader("Travelduqa-Version") String version,
-            @RequestHeader("Authorization") String token,
-            @RequestBody BookingState bookingState) {
+    public ResponseEntity<String> getBooking(@RequestBody BookingState bookingState) {
         log.info("Inside reverseOrder()...bookingState: {}", bookingState);
-        return travelduqaService.getBooking(bookingState, version, token);
+        return travelduqaService.getBooking(bookingState);
     }
 
     @PostMapping("/selectOffer")
-    public ResponseEntity<String> selectOffer(
-            @RequestHeader("Travelduqa-Version") String version,
-            @RequestHeader("Authorization") String token,
-            @RequestBody SelectOfferRequestDto selectOfferRequestDto) {
+    public ResponseEntity<String> selectOffer(@RequestBody SelectOfferRequestDto selectOfferRequestDto) {
         log.info("Inside selectOffer()...selectOfferRequestDto: {}", selectOfferRequestDto);
-        return travelduqaService.selectOffer(selectOfferRequestDto, version, token);
+        return travelduqaService.selectOffer(selectOfferRequestDto);
     }
 
     @PostMapping("/bookingChange")
-    public ResponseEntity<String> bookingChange(@RequestBody BookingChangeRequestDto bookingChangeRequestDto, @RequestHeader("Travelduqa-Version") String version,
-                                                @RequestHeader("Authorization") String token) {
+    public ResponseEntity<String> bookingChange(@RequestBody BookingChangeRequestDto bookingChangeRequestDto) {
         log.info("Inside bookingChange()...bookingChangeRequestDto: {}", bookingChangeRequestDto);
-        return travelduqaService.bookingChange(bookingChangeRequestDto, version, token);
+        return travelduqaService.bookingChange(bookingChangeRequestDto);
     }
 
 }

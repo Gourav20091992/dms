@@ -24,21 +24,15 @@ public class AccessController {
 
     @PostMapping("/getUserInfo")
     @RateLimited
-    public ResponseEntity<String> getUserInfo(
-            @RequestHeader("Travelduqa-Version") String version,
-            @RequestHeader("Authorization") String token,
-            @RequestBody UserInfoRequestDto userInfoRequestDto) {
+    public ResponseEntity<String> getUserInfo(@RequestBody UserInfoRequestDto userInfoRequestDto) {
         log.info("Inside getUserInfo()...userInfoRequestDto: {}", userInfoRequestDto);
-        return accessService.getUserInfo(userInfoRequestDto, version, token);
+        return accessService.getUserInfo(userInfoRequestDto);
     }
 
     @PostMapping("/getAccessToken")
     @RateLimited
-    public ResponseEntity<String> getAccessToken(
-            @RequestHeader("Travelduqa-Version") String version,
-            @RequestHeader("Authorization") String token,
-            @RequestBody UserSessionRequest userSessionRequest) {
+    public ResponseEntity<String> getAccessToken(@RequestBody UserSessionRequest userSessionRequest) {
         log.info("Inside getAccessToken()...userSessionRequest: {}", userSessionRequest);
-        return accessService.getAccessToken(userSessionRequest, version, token);
+        return accessService.getAccessToken(userSessionRequest);
     }
 }
