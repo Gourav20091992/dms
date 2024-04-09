@@ -16,7 +16,7 @@ public class JsonConfiguration {
     @Primary
     public ObjectMapper objectMapper() {
         return new ObjectMapper()
-                .setDateFormat(new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss"))
+                .setDateFormat(new SimpleDateFormat("yyyy-MM-dd"))
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
                 .configure(JsonGenerator.Feature.WRITE_BIGDECIMAL_AS_PLAIN, true)
                 .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);

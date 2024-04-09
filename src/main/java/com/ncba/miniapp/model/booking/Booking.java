@@ -4,6 +4,7 @@ import com.ncba.miniapp.model.RequestResponseLog;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -22,7 +23,7 @@ public class Booking extends RequestResponseLog {
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "booking_id")
-    private List<Passenger> passengers;
+    private List<Passenger> passengers = new ArrayList<>();
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "payment_id")

@@ -67,7 +67,7 @@ public class AirService {
             AirRequest mapperEntity = airRequestMapper.mapToEntity(dto);
             mapperEntity.setRequestUrl(getLocationUrl);
             mapperEntity.setFilter(dto.getFilter());
-            mapperEntity.setValue(dto.getValue());
+            mapperEntity.setAirValue(dto.getValue());
             mapperEntity.setRequestBody(jsonString);
             mapperEntity.setResponseStatus(response.getStatusCode().value());
             mapperEntity.setResponseBody(response.getBody());

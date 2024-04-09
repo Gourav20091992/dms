@@ -10,7 +10,7 @@ import lombok.ToString;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public class Passenger {
+public class PassengerDto {
     @JsonProperty("phone_number")
     private String phoneNumber;
     @JsonProperty("phone_code")

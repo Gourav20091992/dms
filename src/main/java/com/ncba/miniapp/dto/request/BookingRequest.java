@@ -17,6 +17,7 @@ public class BookingRequest {
     private String resultId;
     @JsonProperty("offer_id")
     private String offerId;
-    private List<Passenger> passengersList;
+    @JsonProperty("passengers")
+    private List<PassengerDto> passengerList;
     private Payments payments;
 }
