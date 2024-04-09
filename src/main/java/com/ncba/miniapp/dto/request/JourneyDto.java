@@ -1,5 +1,6 @@
 package com.ncba.miniapp.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,9 +10,7 @@ import lombok.ToString;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReverseOrderStatus {
-    private String appId;
-    private String reverseOrderNo;
-    private String reverseOrderDate;
-    private String secretKey;
+public class JourneyDto {
+    @JsonProperty("journey")
+    private Journey journey;
 }

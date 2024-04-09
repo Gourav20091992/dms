@@ -11,5 +11,5 @@ import lombok.*;
 @EqualsAndHashCode(callSuper = true)
 public class AirRequest extends RequestResponseLog {
     private String filter;
-    private String value;
+    private String airValue;
 }

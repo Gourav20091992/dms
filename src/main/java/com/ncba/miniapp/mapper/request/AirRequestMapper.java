@@ -9,7 +9,7 @@ public class AirRequestMapper {
     public AirRequest mapToEntity(AirRequestDto dto) {
         AirRequest entity = new AirRequest();
         entity.setFilter(dto.getFilter());
-        entity.setValue(dto.getValue());
+        entity.setAirValue(dto.getValue());
         return entity;
     }
 }

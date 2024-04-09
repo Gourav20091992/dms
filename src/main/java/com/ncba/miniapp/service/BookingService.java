@@ -3,6 +3,7 @@ package com.ncba.miniapp.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ncba.miniapp.configuration.HeadersConfig;
 import com.ncba.miniapp.dto.request.BookingRequest;
+import com.ncba.miniapp.dto.request.PassengerDto;
 import com.ncba.miniapp.model.booking.Booking;
 import com.ncba.miniapp.model.booking.Passenger;
 import com.ncba.miniapp.model.booking.Payments;
@@ -71,8 +72,8 @@ public class BookingService {
             booking.setResponseStatus(response.getStatusCode().value());
             booking.setResultId(bookingRequest.getResultId());
             booking.setOfferId(bookingRequest.getOfferId());
-            booking.getPassengers().addAll(bookingRequest.getPassengersList().stream()
-                    .map(passenger -> mapToPassengerEntity(passenger, booking))
+            booking.getPassengers().addAll(bookingRequest.getPassengerList().stream()
+                    .map(passengerDto -> mapToPassengerEntity(passengerDto, booking))
                     .filter(Objects::nonNull)
                     .toList());
             Payments payments = new Payments();
@@ -88,17 +89,17 @@ public class BookingService {
         }
     }
 
-    private Passenger mapToPassengerEntity(com.ncba.miniapp.dto.request.Passenger passenger, com.ncba.miniapp.model.booking.Booking booking) {
+    private Passenger mapToPassengerEntity(PassengerDto passengerDto, com.ncba.miniapp.model.booking.Booking booking) {
         Passenger passengerEntity = new Passenger();
-        passengerEntity.setPhoneNumber(passenger.getPhoneNumber());
-        passengerEntity.setPhoneCode(passenger.getPhoneCode());
-        passengerEntity.setEmail(passenger.getEmail());
-        passengerEntity.setBornOn(passenger.getBornOn());
-        passengerEntity.setTitle(passenger.getTitle());
-        passengerEntity.setGender(passenger.getGender());
-        passengerEntity.setFamilyName(passenger.getFamilyName());
-        passengerEntity.setGivenName(passenger.getGivenName());
-        passengerEntity.setType(passenger.getType());
+        passengerEntity.setPhoneNumber(passengerDto.getPhoneNumber());
+        passengerEntity.setPhoneCode(passengerDto.getPhoneCode());
+        passengerEntity.setEmail(passengerDto.getEmail());
+        passengerEntity.setBornOn(passengerDto.getBornOn());
+        passengerEntity.setTitle(passengerDto.getTitle());
+        passengerEntity.setGender(passengerDto.getGender());
+        passengerEntity.setFamilyName(passengerDto.getFamilyName());
+        passengerEntity.setGivenName(passengerDto.getGivenName());
+        passengerEntity.setType(passengerDto.getType());
         passengerEntity.setBooking(booking);
         return passengerEntity;
     }

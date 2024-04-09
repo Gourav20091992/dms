@@ -16,4 +16,5 @@ public class OrderQueryRequest {
     private String orderNo;
     private String orderDate;
     private String tradeNo;
+    private String secretKey;
 }

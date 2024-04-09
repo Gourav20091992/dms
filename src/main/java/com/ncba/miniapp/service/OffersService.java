@@ -1,7 +1,7 @@
 package com.ncba.miniapp.service;
 
 import com.ncba.miniapp.configuration.HeadersConfig;
-import com.ncba.miniapp.dto.request.Journey;
+import com.ncba.miniapp.dto.request.JourneyDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,10 +25,10 @@ public class OffersService {
         this.headersConfig = headersConfig;
     }
 
-    public ResponseEntity<String> getOffers(Journey journey) {
-        log.info("Inside getOffers()...journey: {} getOffersUrl: {}", journey, getOffersUrl);
+    public ResponseEntity<String> getOffers(JourneyDto journeyDto) {
+        log.info("Inside getOffers()...journey: {} getOffersUrl: {}", journeyDto, getOffersUrl);
         HttpHeaders headers = headersConfig.getHttpHeaders();
-        HttpEntity<Journey> entity = new HttpEntity<>(journey, headers);
+        HttpEntity<JourneyDto> entity = new HttpEntity<>(journeyDto, headers);
 
         try {
             return restTemplate.exchange(getOffersUrl, HttpMethod.POST, entity, String.class);

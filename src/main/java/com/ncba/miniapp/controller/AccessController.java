@@ -4,6 +4,7 @@ import com.ncba.miniapp.configuration.RateLimited;
 import com.ncba.miniapp.dto.request.UserInfoRequestDto;
 import com.ncba.miniapp.dto.request.UserSessionRequest;
 import com.ncba.miniapp.service.AccessService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/access")
 @Slf4j
+@Tag(name = "AccessController", description = "Access Controller APIs")
 public class AccessController {
     @Autowired
     AccessService accessService;
