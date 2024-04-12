@@ -5,6 +5,8 @@ import com.ncba.miniapp.dto.request.BookingState;
 import com.ncba.miniapp.dto.request.ChangeStatusRequestDto;
 import com.ncba.miniapp.dto.request.SelectOfferRequestDto;
 import com.ncba.miniapp.dto.request.travelduqa.createbooking.BookingChangeRequestDto;
+import com.ncba.miniapp.model.SMSLog;
+import com.ncba.miniapp.repository.SMSLogRepository;
 import com.ncba.miniapp.util.ProcessAsync;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
+
+import java.security.SecureRandom;
 
 @Service
 @Slf4j
@@ -36,12 +40,16 @@ public class TravelduqaService {
     private String selectOfferUrl;
     @Value("${bookingChangeUrl}")
     private String bookingChangeUrl;
+    @Value("${smsUrl}")
+    private String smsUrl;
+    private SMSLogRepository smsLogRepository;
 
     @Autowired
-    public TravelduqaService(RestTemplate restTemplate, HeadersConfig headersConfig, ProcessAsync processAsync) {
+    public TravelduqaService(RestTemplate restTemplate, HeadersConfig headersConfig, ProcessAsync processAsync, SMSLogRepository smsLogRepository) {
         this.restTemplate = restTemplate;
         this.headersConfig = headersConfig;
         this.processAsync = processAsync;
+        this.smsLogRepository = smsLogRepository;
     }
 
     public ResponseEntity<String> getBookingChangeStatus(ChangeStatusRequestDto changeStatusRequestDto) {
@@ -204,6 +212,68 @@ public class TravelduqaService {
             // Handle other exceptions
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred: " + e.getMessage());
         }
+    }
+
+    public ResponseEntity<String> getBusRefNo(String mblNo) {
+        log.info("Inside getBusRefNo()...mblNo: {}", mblNo);
+        try {
+            int randomSixDigitNo = generateRandomSixDigitNumber();
+            long randomElevenDigitNo = generateRandomElevenDigitNumber();
+            processAsync.saveEntitySMSTransaction(randomSixDigitNo, randomElevenDigitNo, mblNo, smsUrl);
+            String jsonResponse = String.format("{\"busRefNo\": \"%s\"}", randomElevenDigitNo);
+            log.info("Inside getBusRefNo()...jsonResponse: {}", jsonResponse);
+            return new ResponseEntity<>(jsonResponse, HttpStatus.OK);
+        } catch (HttpClientErrorException e) {
+            log.error("An error occurred inside bookingChange() {}", e.getMessage());
+            // Handle client-side HTTP errors (4xx)
+            return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
+        } catch (HttpServerErrorException e) {
+            log.error("An error occurred inside bookingChange() {}", e.getMessage());
+            // Handle server-side HTTP errors (5xx)
+            return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
+        } catch (Exception e) {
+            log.error("An error occurred inside bookingChange() {}", e.getMessage());
+            // Handle other exceptions
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred: " + e.getMessage());
+        }
+    }
+
+    public ResponseEntity<String> validateBusRefNo(String mblNo, String busRefNo, String otp) {
+        log.info("Inside validateBusRefNo()...mblNo: {}, busRefNo : {}, otp : {}", mblNo, busRefNo, otp);
+        try {
+            SMSLog smsLog = smsLogRepository.findFirstByBusRefNoAndMblNoOrderByCreatedDateDesc(busRefNo, mblNo);
+            long currentTime = System.currentTimeMillis();
+            log.info("currentTime is : {}, generatedTime is : {} and difference is : {}", currentTime, smsLog.getGenerationTime(), (currentTime - smsLog.getGenerationTime()));
+            if ((currentTime - smsLog.getGenerationTime()) <= 60000 && otp.equals(smsLog.getSixDigitNo())) {
+                String jsonResponse = String.format("{\"success\": \"%s\"}", "Request is Valid");
+                return new ResponseEntity<>(jsonResponse, HttpStatus.OK);
+            } else {
+                String errorResponse = String.format("{\"error\": \"%s\"}", "Invalid request, Please try again");
+                return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+            }
+        } catch (HttpClientErrorException e) {
+            log.error("An error occurred inside bookingChange() {}", e.getMessage());
+            // Handle client-side HTTP errors (4xx)
+            return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
+        } catch (HttpServerErrorException e) {
+            log.error("An error occurred inside bookingChange() {}", e.getMessage());
+            // Handle server-side HTTP errors (5xx)
+            return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
+        } catch (Exception e) {
+            log.error("An error occurred inside bookingChange() {}", e.getMessage());
+            // Handle other exceptions
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred: " + e.getMessage());
+        }
+    }
+
+    private long generateRandomElevenDigitNumber() {
+        SecureRandom secureRandom = new SecureRandom();
+        return 10000000000L + secureRandom.nextLong(90000000000L);
+    }
+
+    private int generateRandomSixDigitNumber() {
+        SecureRandom secureRandom = new SecureRandom();
+        return 100000 + secureRandom.nextInt(900000);
     }
 }
 
