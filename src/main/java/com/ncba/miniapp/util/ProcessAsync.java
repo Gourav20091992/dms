@@ -2,23 +2,28 @@ package com.ncba.miniapp.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ncba.miniapp.configuration.HeadersConfig;
 import com.ncba.miniapp.dto.request.BookingState;
-import com.ncba.miniapp.dto.request.CancelBookingRequest;
-import com.ncba.miniapp.dto.request.ChangeStatusRequestDto;
-import com.ncba.miniapp.dto.request.SelectOfferRequestDto;
+import com.ncba.miniapp.dto.request.*;
 import com.ncba.miniapp.dto.request.travelduqa.createbooking.BookingChangeRequestDto;
 import com.ncba.miniapp.model.*;
 import com.ncba.miniapp.repository.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
 @Slf4j
 @Component
 public class ProcessAsync {
 
+    private final HeadersConfig headersConfig;
+    private final RestTemplate restTemplate;
     private CancelBookingRepository cancelBookingRepository;
     private ChangeStatusRequestRepository changeStatusRequestRepository;
     private com.ncba.miniapp.repository.WalletStatusRepository walletStatusRepository;
@@ -26,6 +31,9 @@ public class ProcessAsync {
     private BookingStateRepository bookingStateRepository;
     private SelectOfferRequestRepository selectOfferRequestRepository;
     private BookingChangeRequestRepository bookingChangeRequestRepository;
+    private SMSRequestRepository smsRequestRepository;
+    private SMSTemplateRepository smsTemplateRepository;
+    private SMSLogRepository smsLogRepository;
 
     @Autowired
     public ProcessAsync(CancelBookingRepository cancelBookingRepository,
@@ -34,7 +42,10 @@ public class ProcessAsync {
                         WalletTransactionsRepository walletTransactionsRepository,
                         BookingStateRepository bookingStateRepository,
                         SelectOfferRequestRepository selectOfferRequestRepository,
-                        BookingChangeRequestRepository bookingChangeRequestRepository) {
+                        BookingChangeRequestRepository bookingChangeRequestRepository,
+                        SMSRequestRepository smsRequestRepository,
+                        SMSTemplateRepository smsTemplateRepository,
+                        SMSLogRepository smsLogRepository, HeadersConfig headersConfig, RestTemplate restTemplate) {
         this.cancelBookingRepository = cancelBookingRepository;
         this.changeStatusRequestRepository = changeStatusRequestRepository;
         this.walletTransactionsRepository = walletTransactionsRepository;
@@ -42,6 +53,11 @@ public class ProcessAsync {
         this.selectOfferRequestRepository = selectOfferRequestRepository;
         this.bookingChangeRequestRepository = bookingChangeRequestRepository;
         this.walletStatusRepository = walletStatusRepository;
+        this.smsRequestRepository = smsRequestRepository;
+        this.smsTemplateRepository = smsTemplateRepository;
+        this.smsLogRepository = smsLogRepository;
+        this.headersConfig = headersConfig;
+        this.restTemplate = restTemplate;
     }
 
     @Async
@@ -172,5 +188,101 @@ public class ProcessAsync {
             log.error("An error occurred inside saveEntityAsyncBookingChangeRequest() {}", e.getMessage());
             throw e;
         }
+    }
+
+    @Async
+    public void saveEntitySMSTransaction(int randomSixDigitNo, long randomElevenDigitNo, String mblNo, String smsUrl) throws JsonProcessingException {
+        log.info("Inside saveEntitySMSTransaction()...randomSixDigitNo: {}, randomElevenDigitNo: {}, mblNo : {}, smsUrl : {}", randomSixDigitNo, randomElevenDigitNo, mblNo, smsUrl);
+        try {
+            saveSMSLog(mblNo, randomSixDigitNo, randomElevenDigitNo);
+            SMSRequestDto smsRequestDto = createSMSRequestDto(mblNo, randomSixDigitNo, randomElevenDigitNo);
+            log.info("Inside saveEntitySMSTransaction()...smsRequestDto: {}", smsRequestDto);
+            ResponseEntity<String> response = sendSMSRequest(smsRequestDto, smsUrl);
+            log.info("Inside saveEntitySMSTransaction()...response: {}", response);
+            saveSMSRequestAndResponse(smsRequestDto, smsUrl, response);
+        } catch (Exception e) {
+            log.error("An error occurred inside saveEntitySMSTransaction() {}", e.getMessage());
+            throw e;
+        }
+    }
+
+    private void saveSMSLog(String mblNo, int randomSixDigitNo, long randomElevenDigitNo) {
+        log.info("Inside saveSMSLog()... mblNo : {}, randomSixDigitNo : {}, randomElevenDigitNo : {}", mblNo, randomSixDigitNo, randomElevenDigitNo);
+        SMSLog smsLog = new SMSLog();
+        smsLog.setMblNo(mblNo);
+        smsLog.setSixDigitNo(String.valueOf(randomSixDigitNo));
+        smsLog.setBusRefNo(String.valueOf(randomElevenDigitNo));
+        smsLog.setGenerationTime(System.currentTimeMillis());
+        smsLogRepository.save(smsLog);
+    }
+
+    private SMSRequestDto createSMSRequestDto(String mblNo, int randomSixDigitNo, long randomElevenDigitNo) {
+        log.info("Inside createSMSRequestDto()... mblNo : {}, randomSixDigitNo : {}, randomElevenDigitNo : {}", mblNo, randomSixDigitNo, randomElevenDigitNo);
+        SMSRequestDto smsRequestDto = new SMSRequestDto();
+        smsRequestDto.setBusRefNo(String.valueOf(randomElevenDigitNo));
+        smsRequestDto.setMblNo(mblNo);
+        smsRequestDto.setTmpId("BAP001");
+        smsRequestDto.setSysCnl("CRM");
+
+        GdaDto gdaDto = new GdaDto();
+        gdaDto.setBusCnl("SDK");
+        gdaDto.setJrnNo(String.valueOf(randomElevenDigitNo));
+        smsRequestDto.setGda(gdaDto);
+        String smsTemplateMsg = "Dear customer, Default Verification code is {OTP}, valid for 1 minute.";
+        String templateId = "T001";
+        try {
+            SMSTemplate smsTemplate = smsTemplateRepository.findByTemplateId(templateId);
+            // Check if the template is found and its message is not null or empty
+            if (smsTemplate != null && smsTemplate.getTemplateMsg() != null && !smsTemplate.getTemplateMsg().isEmpty()) {
+                smsTemplateMsg = smsTemplate.getTemplateMsg();
+            } else {
+                log.warn("Template not found or empty for template ID: {}", templateId);
+            }
+        } catch (DataAccessException e) {
+            log.error("Database error while retrieving template ID: {}", templateId, e);
+        }
+        String finalTemplateMessage = smsTemplateMsg.replace("{OTP}", String.valueOf(randomSixDigitNo));
+        log.info("Inside createSMSRequestDto()...smsTemplateMsg : {}, finalTemplateMessage : {}", smsTemplateMsg, finalTemplateMessage);
+        ReplaceValsDto replaceValsDto = new ReplaceValsDto();
+        replaceValsDto.setNtfDesc(finalTemplateMessage);
+        smsRequestDto.setReplaceVals(replaceValsDto);
+
+        return smsRequestDto;
+    }
+
+    private ResponseEntity<String> sendSMSRequest(SMSRequestDto smsRequestDto, String smsUrl) {
+        try {
+            log.info("Inside sendSMSRequest()...smsRequestDto : {}, smsUrl : {}", smsRequestDto, smsUrl);
+            HttpEntity<SMSRequestDto> httpEntity = new HttpEntity<>(smsRequestDto, headersConfig.getHttpHeaders());
+            return restTemplate.exchange(smsUrl, HttpMethod.POST, httpEntity, String.class);
+        } catch (Exception e) {
+            log.error("Error Inside sendSMSRequest()...{}", e.getMessage());
+            return null;
+        }
+    }
+
+    private void saveSMSRequestAndResponse(SMSRequestDto smsRequestDto, String smsUrl, ResponseEntity<String> response) throws JsonProcessingException {
+        log.info("Inside saveSMSRequestAndResponse()...smsRequestDto :{}, smsUrl : {}, response : {}", smsRequestDto, smsUrl, response);
+        SMSRequest smsRequest = new SMSRequest();
+        smsRequest.setBusRefNo(smsRequestDto.getBusRefNo());
+        smsRequest.setMblNo(smsRequestDto.getMblNo());
+        smsRequest.setTmpId("BAP001");
+        smsRequest.setSysCnl("CRM");
+        smsRequest.setRequestUrl(smsUrl);
+        Gda gda = new Gda();
+        gda.setBusCnl(smsRequestDto.getGda().getBusCnl());
+        gda.setJrnNo(smsRequestDto.getGda().getJrnNo());
+        smsRequest.setGda(gda);
+        ReplaceVals replaceVals = new ReplaceVals();
+        replaceVals.setNtfDesc(smsRequestDto.getReplaceVals().getNtfDesc());
+        smsRequest.setReplaceVals(replaceVals);
+        ObjectMapper objectMapper = new ObjectMapper();
+        String jsonString = objectMapper.writeValueAsString(smsRequestDto);
+        smsRequest.setRequestBody(jsonString);
+        if (response != null) {
+            smsRequest.setResponseStatus(response.getStatusCode().value());
+            smsRequest.setResponseBody(response.getBody());
+        }
+        smsRequestRepository.save(smsRequest);
     }
 }
