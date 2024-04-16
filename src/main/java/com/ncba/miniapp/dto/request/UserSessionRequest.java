@@ -10,7 +10,6 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserSessionRequest {
-
     private String code;
     private String appKey;
     private String appSecret;

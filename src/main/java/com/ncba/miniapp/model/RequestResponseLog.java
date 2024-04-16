@@ -19,9 +19,11 @@ public class RequestResponseLog {
     private Long id;
     private String requestUrl;
     @Lob
+    @Column(name = "requestBody", columnDefinition = "TEXT")
     private String requestBody;
     private int responseStatus;
     @Lob
+    @Column(name = "responseBody", columnDefinition = "TEXT")
     private String responseBody;
     @CreationTimestamp
     @Basic

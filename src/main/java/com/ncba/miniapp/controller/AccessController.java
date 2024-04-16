@@ -8,15 +8,21 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/access")
 @Slf4j
 @Tag(name = "AccessController", description = "Access Controller APIs")
+@Validated
 public class AccessController {
+    private final AccessService accessService;
+
     @Autowired
-    AccessService accessService;
+    public AccessController(AccessService accessService) {
+        this.accessService = accessService;
+    }
 
     @GetMapping("/getHealthCheck")
     @RateLimited

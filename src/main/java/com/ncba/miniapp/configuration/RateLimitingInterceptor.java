@@ -13,7 +13,6 @@ import org.springframework.web.servlet.HandlerInterceptor;
 @Component
 @Slf4j
 public class RateLimitingInterceptor implements HandlerInterceptor {
-
     @Autowired
     private RateLimiter rateLimiter;
 
