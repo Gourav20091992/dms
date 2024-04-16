@@ -137,7 +137,9 @@ public class ProcessAsync {
             String jsonString = objectMapper.writeValueAsString(bookingState);
             com.ncba.miniapp.model.BookingState entity = new com.ncba.miniapp.model.BookingState();
             entity.setRequestUrl(requestUrl);
-            entity.setType(bookingState.getPayments().getType());
+            if (bookingState.getPayments() != null) {
+                entity.setType(bookingState.getPayments().getType());
+            }
             entity.setRequestBody(jsonString);
             entity.setBookingId(bookingState.getId());
             entity.setResponseBody(response.getBody());
