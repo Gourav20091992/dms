@@ -6,18 +6,25 @@ import com.ncba.miniapp.dto.request.SelectOfferRequestDto;
 import com.ncba.miniapp.dto.request.travelduqa.createbooking.BookingChangeRequestDto;
 import com.ncba.miniapp.service.TravelduqaService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/duqa")
 @Slf4j
 @Tag(name = "TravelduqaController", description = "Travelduqa Controller APIs")
+@Validated
 public class TravelduqaController {
+    private final TravelduqaService travelduqaService;
+
     @Autowired
-    TravelduqaService travelduqaService;
+    public TravelduqaController(TravelduqaService travelduqaService) {
+        this.travelduqaService = travelduqaService;
+    }
 
     @PostMapping("/getBookingChangeStatus")
     public ResponseEntity<String> getBookingChangeStatus(@RequestBody ChangeStatusRequestDto changeStatusRequestDto) {
@@ -59,6 +66,23 @@ public class TravelduqaController {
     public ResponseEntity<String> bookingChange(@RequestBody BookingChangeRequestDto bookingChangeRequestDto) {
         log.info("Inside bookingChange()...bookingChangeRequestDto: {}", bookingChangeRequestDto);
         return travelduqaService.bookingChange(bookingChangeRequestDto);
+    }
+
+    @PostMapping("/getBusRefNo")
+    public ResponseEntity<String> getBusRefNo(@RequestParam @Pattern(
+            regexp = "^\\+254[7-9]\\d{8}$",
+            message = "Invalid Kenyan phone number format.") String mblNo) {
+        log.info("Inside getBusRefNo()...mblNo: {}", mblNo);
+        return travelduqaService.getBusRefNo(mblNo);
+    }
+
+    @PostMapping("/validateBusRefNo")
+    public ResponseEntity<String> validateBusRefNo(
+            @RequestParam @Pattern(regexp = "^\\+254[7-9]\\d{8}$", message = "Invalid Kenyan phone number format.") String mblNo,
+            @RequestParam @Pattern(regexp = "^\\d{11}$", message = "Invalid Bus Reference number format.") String busRefNo,
+            @RequestParam @Pattern(regexp = "^\\d{6}$", message = "Invalid pin number format.") String otp) {
+        log.info("Inside validateBusRefNo()...mblNo: {}, busRefNo : {}, otp : {}", mblNo, busRefNo, otp);
+        return travelduqaService.validateBusRefNo(mblNo, busRefNo, otp);
     }
 
 }

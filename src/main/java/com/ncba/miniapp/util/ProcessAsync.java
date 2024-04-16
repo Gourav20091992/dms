@@ -7,6 +7,9 @@ import com.ncba.miniapp.dto.request.BookingState;
 import com.ncba.miniapp.dto.request.*;
 import com.ncba.miniapp.dto.request.travelduqa.createbooking.BookingChangeRequestDto;
 import com.ncba.miniapp.model.*;
+import com.ncba.miniapp.model.booking.Booking;
+import com.ncba.miniapp.model.booking.Passenger;
+import com.ncba.miniapp.model.booking.Payments;
 import com.ncba.miniapp.repository.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,22 +21,25 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Objects;
+
 @Slf4j
 @Component
 public class ProcessAsync {
 
     private final HeadersConfig headersConfig;
     private final RestTemplate restTemplate;
-    private CancelBookingRepository cancelBookingRepository;
-    private ChangeStatusRequestRepository changeStatusRequestRepository;
-    private com.ncba.miniapp.repository.WalletStatusRepository walletStatusRepository;
-    private WalletTransactionsRepository walletTransactionsRepository;
-    private BookingStateRepository bookingStateRepository;
-    private SelectOfferRequestRepository selectOfferRequestRepository;
-    private BookingChangeRequestRepository bookingChangeRequestRepository;
-    private SMSRequestRepository smsRequestRepository;
-    private SMSTemplateRepository smsTemplateRepository;
-    private SMSLogRepository smsLogRepository;
+    private final CancelBookingRepository cancelBookingRepository;
+    private final ChangeStatusRequestRepository changeStatusRequestRepository;
+    private final com.ncba.miniapp.repository.WalletStatusRepository walletStatusRepository;
+    private final WalletTransactionsRepository walletTransactionsRepository;
+    private final BookingStateRepository bookingStateRepository;
+    private final SelectOfferRequestRepository selectOfferRequestRepository;
+    private final BookingChangeRequestRepository bookingChangeRequestRepository;
+    private final SMSRequestRepository smsRequestRepository;
+    private final SMSTemplateRepository smsTemplateRepository;
+    private final SMSLogRepository smsLogRepository;
+    private final BookingRepository bookingRepository;
 
     @Autowired
     public ProcessAsync(CancelBookingRepository cancelBookingRepository,
@@ -45,7 +51,7 @@ public class ProcessAsync {
                         BookingChangeRequestRepository bookingChangeRequestRepository,
                         SMSRequestRepository smsRequestRepository,
                         SMSTemplateRepository smsTemplateRepository,
-                        SMSLogRepository smsLogRepository, HeadersConfig headersConfig, RestTemplate restTemplate) {
+                        SMSLogRepository smsLogRepository, HeadersConfig headersConfig, RestTemplate restTemplate, BookingRepository bookingRepository) {
         this.cancelBookingRepository = cancelBookingRepository;
         this.changeStatusRequestRepository = changeStatusRequestRepository;
         this.walletTransactionsRepository = walletTransactionsRepository;
@@ -58,6 +64,7 @@ public class ProcessAsync {
         this.smsLogRepository = smsLogRepository;
         this.headersConfig = headersConfig;
         this.restTemplate = restTemplate;
+        this.bookingRepository = bookingRepository;
     }
 
     @Async
@@ -100,7 +107,7 @@ public class ProcessAsync {
     }
 
     @Async
-    public void saveEntityAsyncGetWalletStatus(String getWalletStatusUrl, ResponseEntity<String> response) throws Exception {
+    public void saveEntityAsyncGetWalletStatus(String getWalletStatusUrl, ResponseEntity<String> response) {
         log.info("Inside saveEntityAsyncGetWalletStatus()...getWalletStatusUrl: {} response: {}", getWalletStatusUrl, response);
         try {
             WalletStatus entity = new WalletStatus();
@@ -286,5 +293,52 @@ public class ProcessAsync {
             smsRequest.setResponseBody(response.getBody());
         }
         smsRequestRepository.save(smsRequest);
+    }
+
+    @Async
+    public void saveEntityAsyncCreateBooking(BookingRequest bookingRequest, String createBookingUrl, ResponseEntity<String> response) throws Exception {
+        log.info("Inside saveEntityAsyncCreateBooking()...bookingRequest: {} response: {}", bookingRequest, response);
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            String jsonString = objectMapper.writeValueAsString(bookingRequest);
+            Booking booking = new Booking();
+            booking.setRequestUrl(createBookingUrl);
+            booking.setRequestBody(jsonString);
+            booking.setResponseBody(response.getBody());
+            booking.setResponseStatus(response.getStatusCode().value());
+            booking.setResultId(bookingRequest.getResultId());
+            booking.setOfferId(bookingRequest.getOfferId());
+            booking.getPassengers().addAll(bookingRequest.getPassengerList().stream()
+                    .map(passengerDto -> mapToPassengerEntity(passengerDto, booking))
+                    .filter(Objects::nonNull)
+                    .toList());
+            com.ncba.miniapp.model.booking.Payments payments = new Payments();
+            if (bookingRequest.getPayments() != null) {
+                payments.setType(bookingRequest.getPayments().getType());
+                payments.setCurrency(bookingRequest.getPayments().getCurrency());
+                payments.setAmount(bookingRequest.getPayments().getAmount());
+                payments.setBooking(booking);
+                booking.setPayments(payments);
+            }
+            bookingRepository.save(booking);
+        } catch (Exception e) {
+            log.error("An error occurred inside saveEntityAsyncCreateBooking() {}", e.getMessage());
+            throw e;
+        }
+    }
+
+    private Passenger mapToPassengerEntity(PassengerDto passengerDto, com.ncba.miniapp.model.booking.Booking booking) {
+        Passenger passengerEntity = new Passenger();
+        passengerEntity.setPhoneNumber(passengerDto.getPhoneNumber());
+        passengerEntity.setPhoneCode(passengerDto.getPhoneCode());
+        passengerEntity.setEmail(passengerDto.getEmail());
+        passengerEntity.setBornOn(passengerDto.getBornOn());
+        passengerEntity.setTitle(passengerDto.getTitle());
+        passengerEntity.setGender(passengerDto.getGender());
+        passengerEntity.setFamilyName(passengerDto.getFamilyName());
+        passengerEntity.setGivenName(passengerDto.getGivenName());
+        passengerEntity.setType(passengerDto.getType());
+        passengerEntity.setBooking(booking);
+        return passengerEntity;
     }
 }

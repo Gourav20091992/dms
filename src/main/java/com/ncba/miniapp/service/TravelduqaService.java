@@ -22,10 +22,10 @@ import java.security.SecureRandom;
 @Service
 @Slf4j
 public class TravelduqaService {
-
     private final ProcessAsync processAsync;
     private final RestTemplate restTemplate;
     private final HeadersConfig headersConfig;
+    private final SMSLogRepository smsLogRepository;
     @Value("${getBookingChangeStatusUrl}")
     private String getBookingChangeStatusUrl;
     @Value("${getWalletStatusUrl}")
@@ -42,7 +42,6 @@ public class TravelduqaService {
     private String bookingChangeUrl;
     @Value("${smsUrl}")
     private String smsUrl;
-    private SMSLogRepository smsLogRepository;
 
     @Autowired
     public TravelduqaService(RestTemplate restTemplate, HeadersConfig headersConfig, ProcessAsync processAsync, SMSLogRepository smsLogRepository) {
@@ -243,6 +242,10 @@ public class TravelduqaService {
         try {
             SMSLog smsLog = smsLogRepository.findFirstByBusRefNoAndMblNoOrderByCreatedDateDesc(busRefNo, mblNo);
             long currentTime = System.currentTimeMillis();
+            if (smsLog == null) {
+                log.info("SMSLog is null");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("SMS Log is null");
+            }
             log.info("currentTime is : {}, generatedTime is : {} and difference is : {}", currentTime, smsLog.getGenerationTime(), (currentTime - smsLog.getGenerationTime()));
             if ((currentTime - smsLog.getGenerationTime()) <= 60000 && otp.equals(smsLog.getSixDigitNo())) {
                 String jsonResponse = String.format("{\"success\": \"%s\"}", "Request is Valid");
@@ -252,15 +255,15 @@ public class TravelduqaService {
                 return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
             }
         } catch (HttpClientErrorException e) {
-            log.error("An error occurred inside bookingChange() {}", e.getMessage());
+            log.error("An error occurred inside validateBusRefNo() {}", e.getMessage());
             // Handle client-side HTTP errors (4xx)
             return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
         } catch (HttpServerErrorException e) {
-            log.error("An error occurred inside bookingChange() {}", e.getMessage());
+            log.error("An error occurred inside validateBusRefNo() {}", e.getMessage());
             // Handle server-side HTTP errors (5xx)
             return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
         } catch (Exception e) {
-            log.error("An error occurred inside bookingChange() {}", e.getMessage());
+            log.error("An error occurred inside validateBusRefNo() {}", e.getMessage());
             // Handle other exceptions
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred: " + e.getMessage());
         }

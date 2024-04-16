@@ -15,7 +15,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @OpenAPIDefinition(info = @Info(title = "My API", version = "1.0", description = "API for My Application"))
 public class OpenApiConfig {
-
     @Bean
     public OpenAPI miniAppOpenAPI(@Value("${server.servlet.context-path}") String contextPath) {
         return new OpenAPI()

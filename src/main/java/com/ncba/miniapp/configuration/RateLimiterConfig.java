@@ -7,7 +7,6 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class RateLimiterConfig {
-
     @Value("${rate.limit.duration}")
     private String rateLimitDuration;
 
