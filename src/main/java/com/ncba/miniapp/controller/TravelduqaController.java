@@ -70,18 +70,14 @@ public class TravelduqaController {
 
     @PostMapping("/getBusRefNo")
     public ResponseEntity<String> getBusRefNo(
-            @RequestParam @Pattern(regexp = "^(07\\d{8}|01\\d{8}|254\\d{9}|\\+254\\d{9})$",message = "Invalid Kenyan phone number format.") String mblNo) {
+            @RequestParam @Pattern(regexp = "^(7\\d{8}|1\\d{8}|07\\d{8}|01\\d{8}|254\\d{9}|\\+254\\d{9})$",message = "Invalid Kenyan phone number format.") String mblNo) {
         log.info("Inside getBusRefNo()...mblNo: {}", mblNo);
-        if (mblNo.startsWith("+")) {
-            mblNo = mblNo.substring(1);
-            log.info("Inside getBusRefNo()... after removal of '+' from mblNo: {}", mblNo);
-        }
         return travelduqaService.getBusRefNo(mblNo);
     }
 
     @PostMapping("/validateBusRefNo")
     public ResponseEntity<String> validateBusRefNo(
-            @RequestParam @Pattern(regexp = "^(07\\d{8}|01\\d{8}|254\\d{9}|\\+254\\d{9})$", message = "Invalid Kenyan phone number format.") String mblNo,
+            @RequestParam @Pattern(regexp = "^(7\\d{8}|1\\d{8}|07\\d{8}|01\\d{8}|254\\d{9}|\\+254\\d{9})$", message = "Invalid Kenyan phone number format.") String mblNo,
             @RequestParam @Pattern(regexp = "^\\d{11}$", message = "Invalid Bus Reference number format.") String busRefNo,
             @RequestParam @Pattern(regexp = "^\\d{6}$", message = "Invalid pin number format.") String otp) {
         log.info("Inside validateBusRefNo()...mblNo: {}, busRefNo : {}, otp : {}", mblNo, busRefNo, otp);
