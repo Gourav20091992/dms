@@ -216,6 +216,29 @@ public class TravelduqaService {
     public ResponseEntity<String> getBusRefNo(String mblNo) {
         log.info("Inside getBusRefNo()...mblNo: {}", mblNo);
         try {
+            if (mblNo.startsWith("+254")) {
+                mblNo = mblNo.substring(1);
+                log.info("Inside getBusRefNo()... after removal of '+' from mblNo: {}", mblNo);
+            } else if (mblNo.startsWith("07") || mblNo.startsWith("01")) {
+                mblNo = "254" + mblNo.substring(1);
+                log.info("Inside getBusRefNo()... after removal of '0' from mblNo: {}", mblNo);
+            } else if (mblNo.startsWith("7") || mblNo.startsWith("1")) {
+                mblNo = "254" + mblNo;
+                log.info("Inside getBusRefNo()... after adding 254 to mblNo: {}", mblNo);
+            } else if (mblNo.startsWith("254") && mblNo.length() == 12) {
+                log.info("Inside getBusRefNo()... valid mobile No is mblNo: {}", mblNo);
+            } else {
+                log.info("Inside getBusRefNo()... Accepted Mobile formats are below", mblNo);
+                log.info("**====================**");
+                log.info("0712345678\t\t\n" +
+                        "0112345678\t\t\n" +
+                        "254112345678\t\n" +
+                        "+254112345678\t\n" +
+                        "712345678\t\t\n" +
+                        "112345678\t\t\n");
+                log.info("**====================**");
+                return new ResponseEntity<>("Invalid Mobile No. Please check the format and try again...", HttpStatus.BAD_REQUEST);
+            }
             int randomSixDigitNo = generateRandomSixDigitNumber();
             long randomElevenDigitNo = generateRandomElevenDigitNumber();
             processAsync.saveEntitySMSTransaction(randomSixDigitNo, randomElevenDigitNo, mblNo, smsUrl);
