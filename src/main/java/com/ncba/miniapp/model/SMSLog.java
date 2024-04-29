@@ -24,5 +24,5 @@ public class SMSLog {
     @Basic
     @Column(updatable = false)
     private LocalDateTime createdDate;
-
+    private String verifiedStatus;
 }

@@ -228,7 +228,7 @@ public class TravelduqaService {
             } else if (mblNo.startsWith("254") && mblNo.length() == 12) {
                 log.info("Inside getBusRefNo()... valid mobile No is mblNo: {}", mblNo);
             } else {
-                log.info("Inside getBusRefNo()... Accepted Mobile formats are below", mblNo);
+                log.info("Inside getBusRefNo()... Accepted Mobile formats are below");
                 log.info("**====================**");
                 log.info("0712345678\t\t\n" +
                         "0112345678\t\t\n" +
@@ -241,6 +241,13 @@ public class TravelduqaService {
             }
             int randomSixDigitNo = generateRandomSixDigitNumber();
             long randomElevenDigitNo = generateRandomElevenDigitNumber();
+            SMSLog smsLog = processAsync.findByMblNo(mblNo);
+            if(smsLog!=null && smsLog.getVerifiedStatus().equals("VERIFIED")) {
+                log.info("Inside getBusRefNo()...mblNo Verified");
+                String jsonResponse = String.format("{\"status\": \"%s\"}", "VERIFIED");
+                log.info("Inside getBusRefNo()...jsonResponse: {}", jsonResponse);
+                return new ResponseEntity<>(jsonResponse, HttpStatus.OK);
+            }
             processAsync.saveEntitySMSTransaction(randomSixDigitNo, randomElevenDigitNo, mblNo, smsUrl);
             String jsonResponse = String.format("{\"busRefNo\": \"%s\"}", randomElevenDigitNo);
             log.info("Inside getBusRefNo()...jsonResponse: {}", jsonResponse);
@@ -272,6 +279,7 @@ public class TravelduqaService {
             log.info("currentTime is : {}, generatedTime is : {} and difference is : {}", currentTime, smsLog.getGenerationTime(), (currentTime - smsLog.getGenerationTime()));
             if ((currentTime - smsLog.getGenerationTime()) <= 60000 && otp.equals(smsLog.getSixDigitNo())) {
                 String jsonResponse = String.format("{\"success\": \"%s\"}", "Request is Valid");
+                processAsync.updateSMSLogStatus(smsLog);
                 return new ResponseEntity<>(jsonResponse, HttpStatus.OK);
             } else {
                 String errorResponse = String.format("{\"error\": \"%s\"}", "Invalid request, Please try again");
