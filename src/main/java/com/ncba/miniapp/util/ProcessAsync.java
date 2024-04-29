@@ -203,7 +203,7 @@ public class ProcessAsync {
     public void saveEntitySMSTransaction(int randomSixDigitNo, long randomElevenDigitNo, String mblNo, String smsUrl) throws JsonProcessingException {
         log.info("Inside saveEntitySMSTransaction()...randomSixDigitNo: {}, randomElevenDigitNo: {}, mblNo : {}, smsUrl : {}", randomSixDigitNo, randomElevenDigitNo, mblNo, smsUrl);
         try {
-            saveSMSLog(mblNo, randomSixDigitNo, randomElevenDigitNo);
+            saveSMSLog(mblNo, randomSixDigitNo, randomElevenDigitNo, "NOTVERIFIED");
             SMSRequestDto smsRequestDto = createSMSRequestDto(mblNo, randomSixDigitNo, randomElevenDigitNo);
             log.info("Inside saveEntitySMSTransaction()...smsRequestDto: {}", smsRequestDto);
             ResponseEntity<String> response = sendSMSRequest(smsRequestDto, smsUrl);
@@ -215,14 +215,33 @@ public class ProcessAsync {
         }
     }
 
-    private void saveSMSLog(String mblNo, int randomSixDigitNo, long randomElevenDigitNo) {
+    @Async
+    public void updateSMSLogStatus(SMSLog smsLog) {
+        log.info("Inside updateSMSLogStatus()...smsLog: {}", smsLog);
+        try {
+            smsLog.setVerifiedStatus("VERIFIED");
+            log.info("Inside updateSMSLogStatus()...after updating status smsLog: {}", smsLog);
+            smsLogRepository.save(smsLog);
+        } catch (Exception e) {
+            log.error("An error occurred inside updateSMSLogStatus() {}", e.getMessage());
+            throw e;
+        }
+    }
+
+    private void saveSMSLog(String mblNo, int randomSixDigitNo, long randomElevenDigitNo, String status) {
         log.info("Inside saveSMSLog()... mblNo : {}, randomSixDigitNo : {}, randomElevenDigitNo : {}", mblNo, randomSixDigitNo, randomElevenDigitNo);
         SMSLog smsLog = new SMSLog();
         smsLog.setMblNo(mblNo);
         smsLog.setSixDigitNo(String.valueOf(randomSixDigitNo));
         smsLog.setBusRefNo(String.valueOf(randomElevenDigitNo));
+        smsLog.setVerifiedStatus(status);
         smsLog.setGenerationTime(System.currentTimeMillis());
         smsLogRepository.save(smsLog);
+    }
+
+    public SMSLog findByMblNo(String mblNo) {
+        log.info("Inside findFromSMSLog()... mblNo : {}", mblNo);
+        return smsLogRepository.findTop1ByMblNoOrderByCreatedDateDesc(mblNo);
     }
 
     private SMSRequestDto createSMSRequestDto(String mblNo, int randomSixDigitNo, long randomElevenDigitNo) {
