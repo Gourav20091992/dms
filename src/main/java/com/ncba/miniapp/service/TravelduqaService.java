@@ -125,7 +125,7 @@ public class TravelduqaService {
         HttpHeaders headers = headersConfig.getHttpHeaders();
         HttpEntity<BookingState> entity = new HttpEntity<>(bookingState, headers);
         try {
-            ResponseEntity<String> response = restTemplate.exchange(updateBookingStateUrl, HttpMethod.POST, entity, String.class);
+            ResponseEntity<String> response = restTemplate.exchange(updateBookingStateUrl, HttpMethod.PUT, entity, String.class);
             processAsync.saveEntityAsyncUpdateBookingState(bookingState, updateBookingStateUrl, response);
             return response;
         } catch (HttpClientErrorException e) {
