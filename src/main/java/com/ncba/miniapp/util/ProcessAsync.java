@@ -40,6 +40,7 @@ public class ProcessAsync {
     private final SMSTemplateRepository smsTemplateRepository;
     private final SMSLogRepository smsLogRepository;
     private final BookingRepository bookingRepository;
+    private final FinalBookingRepository finalBookingRepository;
 
     @Autowired
     public ProcessAsync(CancelBookingRepository cancelBookingRepository,
@@ -51,7 +52,7 @@ public class ProcessAsync {
                         BookingChangeRequestRepository bookingChangeRequestRepository,
                         SMSRequestRepository smsRequestRepository,
                         SMSTemplateRepository smsTemplateRepository,
-                        SMSLogRepository smsLogRepository, HeadersConfig headersConfig, RestTemplate restTemplate, BookingRepository bookingRepository) {
+                        SMSLogRepository smsLogRepository, HeadersConfig headersConfig, RestTemplate restTemplate, BookingRepository bookingRepository, FinalBookingRepository finalBookingRepository) {
         this.cancelBookingRepository = cancelBookingRepository;
         this.changeStatusRequestRepository = changeStatusRequestRepository;
         this.walletTransactionsRepository = walletTransactionsRepository;
@@ -65,6 +66,7 @@ public class ProcessAsync {
         this.headersConfig = headersConfig;
         this.restTemplate = restTemplate;
         this.bookingRepository = bookingRepository;
+        this.finalBookingRepository = finalBookingRepository;
     }
 
     @Async
@@ -340,6 +342,28 @@ public class ProcessAsync {
                 booking.setPayments(payments);
             }
             bookingRepository.save(booking);
+        } catch (Exception e) {
+            log.error("An error occurred inside saveEntityAsyncCreateBooking() {}", e.getMessage());
+            throw e;
+        }
+    }
+
+    @Async
+    public void saveEntityAsyncFinalBooking(FinalBookingDto finalBookingDto) throws Exception {
+        log.info("Inside saveEntityAsyncFinalBooking()...finalBookingDto: {}", finalBookingDto);
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            String jsonString = objectMapper.writeValueAsString(finalBookingDto);
+            FinalBooking booking = new FinalBooking();
+            booking.setRequestUrl(null);
+            booking.setRequestBody(jsonString);
+            booking.setResponseStatus(200);
+            booking.setOfferId(finalBookingDto.getOfferId());
+            booking.setMblNo(finalBookingDto.getMblNo());
+            booking.setRequestBody(jsonString);
+            booking.setResponseBody(objectMapper.writeValueAsString(finalBookingDto.getPaymentResp()));
+            booking.setPaymentResp(objectMapper.writeValueAsString(finalBookingDto.getPaymentResp()));
+            finalBookingRepository.save(booking);
         } catch (Exception e) {
             log.error("An error occurred inside saveEntityAsyncCreateBooking() {}", e.getMessage());
             throw e;

@@ -70,7 +70,7 @@ public class TravelduqaController {
 
     @PostMapping("/getBusRefNo")
     public ResponseEntity<String> getBusRefNo(
-            @RequestParam @Pattern(regexp = "^(7\\d{8}|1\\d{8}|07\\d{8}|01\\d{8}|254\\d{9}|\\+254\\d{9})$",message = "Invalid Kenyan phone number format.") String mblNo) {
+            @RequestParam @Pattern(regexp = "^(7\\d{8}|1\\d{8}|07\\d{8}|01\\d{8}|254\\d{9}|\\+254\\d{9})$", message = "Invalid Kenyan phone number format.") String mblNo) {
         log.info("Inside getBusRefNo()...mblNo: {}", mblNo);
         return travelduqaService.getBusRefNo(mblNo);
     }
