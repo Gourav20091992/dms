@@ -242,7 +242,7 @@ public class TravelduqaService {
             int randomSixDigitNo = generateRandomSixDigitNumber();
             long randomElevenDigitNo = generateRandomElevenDigitNumber();
             SMSLog smsLog = processAsync.findByMblNo(mblNo);
-            if(smsLog!=null && smsLog.getVerifiedStatus().equals("VERIFIED")) {
+            if (smsLog != null && smsLog.getVerifiedStatus().equals("VERIFIED")) {
                 log.info("Inside getBusRefNo()...mblNo Verified");
                 String jsonResponse = String.format("{\"status\": \"%s\"}", "VERIFIED");
                 log.info("Inside getBusRefNo()...jsonResponse: {}", jsonResponse);
