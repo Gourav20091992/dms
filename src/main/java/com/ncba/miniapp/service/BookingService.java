@@ -65,13 +65,13 @@ public class BookingService {
             processAsync.saveEntityAsyncFinalBooking(finalBookingDto);
             return new ResponseEntity<>("Data Persisted", HttpStatus.OK);
         } catch (HttpClientErrorException e) {
-            log.error("An error occurred inside createBooking(): {}", e.getMessage());
+            log.error("An error occurred inside persistBooking(): {}", e.getMessage());
             return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
         } catch (HttpServerErrorException e) {
-            log.error("An error occurred inside createBooking(): {}", e.getMessage());
+            log.error("An error occurred inside persistBooking(): {}", e.getMessage());
             return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
         } catch (Exception e) {
-            log.error("An error occurred inside createBooking(): {}", e.getMessage());
+            log.error("An error occurred inside persistBooking(): {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred: " + e.getMessage());
         }
     }
