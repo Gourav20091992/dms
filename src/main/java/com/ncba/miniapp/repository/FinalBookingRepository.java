@@ -9,4 +9,5 @@ import java.util.List;
 public interface FinalBookingRepository extends JpaRepository<FinalBooking, Long> {
     List<FinalBookingProjection> findByMblNo(String mblNo);
 
+    List<FinalBooking> findTop10ByMblNoOrderByCreatedDateDesc(String mblNo);
 }
