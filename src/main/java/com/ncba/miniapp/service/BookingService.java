@@ -3,10 +3,12 @@ package com.ncba.miniapp.service;
 import com.ncba.miniapp.configuration.HeadersConfig;
 import com.ncba.miniapp.dto.request.BookingRequest;
 import com.ncba.miniapp.dto.request.FinalBookingDto;
-import com.ncba.miniapp.model.FinalBookingProjection;
+import com.ncba.miniapp.dto.response.FinalBookingResponse;
+import com.ncba.miniapp.model.FinalBooking;
 import com.ncba.miniapp.repository.FinalBookingRepository;
 import com.ncba.miniapp.util.ProcessAsync;
 import lombok.extern.slf4j.Slf4j;
+import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -16,6 +18,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -77,8 +80,20 @@ public class BookingService {
     }
 
     @Transactional(readOnly = true)
-    public List<FinalBookingProjection> getPrevious10Bookings(String mblNo) {
+    public List<FinalBookingResponse> getPrevious10Bookings(String mblNo) throws JSONException {
         log.info("Inside getPrevious10Bookings()...mblNo: {}", mblNo);
-        return finalBookingRepository.findByMblNo(mblNo);
+        List<FinalBookingResponse> finalBookingResponseList = new ArrayList<>();
+        List<FinalBooking> finalBookingList = finalBookingRepository.findTop10ByMblNoOrderByCreatedDateDesc(mblNo);
+        for (FinalBooking finalBooking : finalBookingList) {
+            FinalBookingResponse finalBookingResponse = new FinalBookingResponse();
+            finalBookingResponse.setMblNo(finalBooking.getMblNo());
+            finalBookingResponse.setOfferId(finalBooking.getOfferId());
+            if (finalBooking.getPaymentResp() != null) {
+                finalBookingResponse.setPaymentResp(finalBooking.getPaymentResp());
+            }
+            finalBookingResponseList.add(finalBookingResponse);
+        }
+        log.info("Inside getPrevious10Bookings()...FinalBookingResponse is : {}" + finalBookingResponseList);
+        return finalBookingResponseList;
     }
 }

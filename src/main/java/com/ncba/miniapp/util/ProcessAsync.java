@@ -362,7 +362,7 @@ public class ProcessAsync {
             booking.setMblNo(finalBookingDto.getMblNo());
             booking.setRequestBody(jsonString);
             booking.setResponseBody(objectMapper.writeValueAsString(finalBookingDto.getPaymentResp()));
-            booking.setPaymentResp(objectMapper.writeValueAsString(finalBookingDto.getPaymentResp()));
+            booking.setPaymentResp(finalBookingDto.getPaymentResp());
             finalBookingRepository.save(booking);
         } catch (Exception e) {
             log.error("An error occurred inside saveEntityAsyncCreateBooking() {}", e.getMessage());

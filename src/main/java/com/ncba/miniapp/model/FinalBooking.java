@@ -1,9 +1,11 @@
 package com.ncba.miniapp.model;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Lob;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Data
 @ToString(callSuper = true)
@@ -14,7 +16,7 @@ import lombok.*;
 public class FinalBooking extends RequestResponseLog {
     private String offerId;
     private String mblNo;
-    @Lob
-    @Column(name = "payment_resp", columnDefinition = "TEXT")
-    private String paymentResp;
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "payment_resp", columnDefinition = "jsonb")
+    private JsonNode paymentResp;
 }
